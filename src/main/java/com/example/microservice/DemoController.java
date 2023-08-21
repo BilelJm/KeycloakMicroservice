@@ -1,33 +1,37 @@
 package com.example.microservice;
 
+import com.example.microservice.config.KeycloakClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
-@RequestMapping("/api/v1/demo")
+@RequestMapping(value = "/api/v1/demo")
 public class DemoController {
 
-    private final keycloak keycloak;
+    private final KeycloakClient keycloakClient;
 
-    public DemoController(com.example.microservice.keycloak keycloak) {
-        this.keycloak = keycloak;
+    public DemoController(KeycloakClient keycloakClient) {
+        this.keycloakClient = keycloakClient;
     }
 
     @GetMapping("/microserviceUser")
-    @PreAuthorize("hasRole('user')")
-    public String microserviceUser() {
-        return "Microservice - USER" + keycloak.keycloakUser();
+    @PreAuthorize("hasAuthority('USER')")
+    public String microserviceUser(Principal principal) {
+        return "Microservice - USER" + keycloakClient.getKeycloakUser();
     }
 
-    @GetMapping("/microserviceAdmin")
-    @PreAuthorize("hasRole('admin')")
+    @GetMapping(value = "/microserviceAdmin")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('ADMIN')")
     public String microserviceAdmin() {
-        return "Microservice - ADMIN" + keycloak.keycloakAdmin();
+        return "Microservice ADMIN + " + keycloakClient.getKeycloakAdmin();
     }
 
     @GetMapping("/microserviceAdminUser")
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public String microserviceAdminUser() {
-        return "Microservice - ADMIN" + keycloak.keycloakUser();
+        return "Microservice - ADMIN" + keycloakClient.getKeycloakUser() ;
     }
 }
